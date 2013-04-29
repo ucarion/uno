@@ -121,14 +121,10 @@ public class Renderer {
 	}
 	
 	public void setView(Matrix viewMatrix) {
-		FloatBuffer fb = viewMatrix.asFloatBuffer();
-		fb.position(0);
-		view = fb;
+		view = viewMatrix.asFloatBuffer();
 	}
 	
 	public void setProjection(Matrix projMatrix) {
-		FloatBuffer fb = projMatrix.asFloatBuffer();
-		fb.position(0);
-		proj = fb;
+		proj = projMatrix.asFloatBuffer();
 	}
 }
