@@ -4,6 +4,7 @@ import com.ulyssecarion.uno.camera.Camera;
 import com.ulyssecarion.uno.component.Component;
 import com.ulyssecarion.uno.component.Object3D;
 import com.ulyssecarion.uno.math.Matrix;
+import com.ulyssecarion.uno.math.Vector;
 import com.ulyssecarion.uno.renderer.Renderer;
 import com.ulyssecarion.uno.util.MatrixUtils;
 
@@ -13,6 +14,9 @@ public class Scene {
 	
 	private Object3D root;
 	private Camera camera;
+	private Vector light;
+	private double ambience;
+	private double diffusiveness;
 	
 	public Scene() {
 		this(new Camera());
@@ -27,6 +31,9 @@ public class Scene {
 		this.camera = camera;
 		this.width = width;
 		this.height = height;
+		this.ambience = 1;
+		this.diffusiveness = 0;
+		this.light = new Vector(1, 0, 0);
 	}
 	
 	public void add(Component component) {
@@ -41,9 +48,12 @@ public class Scene {
 		
 		Matrix projection = MatrixUtils.perspective(fov, aspect, 0.1f, 100f);
 		
-		Matrix viewProjection = projection.times(view);
+		renderer.setView(view);
+		renderer.setProjection(projection);
+		renderer.setLightDirection(light);
+		renderer.setDiffuse(diffusiveness);
+		renderer.setAmbient(ambience);
 		
-		renderer.setViewProjection(viewProjection);
 		root.render(renderer, new Matrix());
 	}
 	
@@ -61,5 +71,17 @@ public class Scene {
 
 	public void setWidth(int width) {
 		this.width = width;
+	}
+
+	public void setLight(Vector light) {
+		this.light = light;
+	}
+
+	public void setAmbience(double ambience) {
+		this.ambience = ambience;
+	}
+
+	public void setDiffusiveness(double diffusiveness) {
+		this.diffusiveness = diffusiveness;
 	}
 }

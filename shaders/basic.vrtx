@@ -1,13 +1,27 @@
-uniform mat4 u_ViewProjection;
+uniform mat4 u_View;
+uniform mat4 u_Proj;
 uniform mat4 u_Model;
+uniform vec3 u_DirToLight;
+
+uniform vec3 u_Diffuse;
+uniform vec3 u_Ambient;
 
 attribute vec4 a_Position;
 attribute vec4 a_Color;
+attribute vec4 a_Normal;
 
 varying vec4 v_Color;
 
 void main()
 {
-	gl_Position = u_ViewProjection * u_Model * a_Position;
-	v_Color = a_Color;
+	gl_Position = u_Proj * u_View * u_Model * a_Position;
+	
+	vec4 normalCam = normalize(u_View * u_Model * a_Normal);
+	float angIncident = dot(normalCam, vec4(u_DirToLight, 0.0));
+	angIncident = max(angIncident, 0.0);
+	
+	vec4 diffusive = a_Color * vec4(u_Diffuse, 1.0) * angIncident;
+	vec4 ambient = a_Color * vec4(u_Ambient, 1.0);
+	
+	v_Color = diffusive + ambient;
 }

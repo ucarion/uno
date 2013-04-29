@@ -5,29 +5,45 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL2;
 
 import com.ulyssecarion.uno.math.Matrix;
+import com.ulyssecarion.uno.math.Vector;
 import com.ulyssecarion.uno.util.ShaderUtils;
 
 public class Renderer {
 	private static final int BYTES_PER_FLOAT = 4;
 	private static final int POSITION_COMPONENTS = 3;
 	private static final int COLOR_COMPONENTS = 3;
-	private static final int STRIDE = (POSITION_COMPONENTS + COLOR_COMPONENTS)
-			* BYTES_PER_FLOAT;
+	private static final int STRIDE =
+			(POSITION_COMPONENTS + COLOR_COMPONENTS + POSITION_COMPONENTS)
+					* BYTES_PER_FLOAT;
 	
 	private static final String A_POSITION = "a_Position";
 	private static final String A_COLOR = "a_Color";
-	private static final String U_VIEWPROJ = "u_ViewProjection";
+	private static final String A_NORMAL = "a_Normal";
+	private static final String U_VIEW = "u_View";
+	private static final String U_PROJ = "u_Proj";
 	private static final String U_MODEL = "u_Model";
+	private static final String U_DIRTOLIGHT = "u_DirToLight";
+	private static final String U_DIFFUSE = "u_Diffuse";
+	private static final String U_AMBIENT = "u_Ambient";
 	
 	private GL2 gl;
 	private int aPosition;
 	private int aColor;
-	private int uViewProjection;
+	private int aNormal;
+	private int uView;
+	private int uProj;
 	private int uModel;
+	private int uDirToLight;
+	private int uDiffuse;
+	private int uAmbient;
 	private int program;
 	
-	private FloatBuffer viewProj;
+	private FloatBuffer view;
+	private FloatBuffer proj;
 	private FloatBuffer model;
+	private FloatBuffer light;
+	private FloatBuffer diffuse;
+	private FloatBuffer ambient;
 	
 	public Renderer(GL2 gl) {
 		this.gl = gl;
@@ -48,8 +64,13 @@ public class Renderer {
 		
 		aPosition = gl.glGetAttribLocation(program, A_POSITION);
 		aColor = gl.glGetAttribLocation(program, A_COLOR);
-		uViewProjection = gl.glGetUniformLocation(program, U_VIEWPROJ);
+		aNormal = gl.glGetAttribLocation(program, A_NORMAL);
+		uView = gl.glGetUniformLocation(program, U_VIEW);
+		uProj = gl.glGetUniformLocation(program, U_PROJ);
 		uModel = gl.glGetUniformLocation(program, U_MODEL);
+		uDirToLight = gl.glGetUniformLocation(program, U_DIRTOLIGHT);
+		uDiffuse = gl.glGetUniformLocation(program, U_DIFFUSE);
+		uAmbient = gl.glGetUniformLocation(program, U_AMBIENT);
 	}
 	
 	public void loadPoints(FloatBuffer points) {
@@ -62,6 +83,11 @@ public class Renderer {
 		gl.glVertexAttribPointer(aColor, COLOR_COMPONENTS, GL2.GL_FLOAT, false, STRIDE,
 				points);
 		gl.glEnableVertexAttribArray(aColor);
+		
+		points.position(POSITION_COMPONENTS + COLOR_COMPONENTS);
+		gl.glVertexAttribPointer(aNormal, POSITION_COMPONENTS, GL2.GL_FLOAT, false,
+				STRIDE, points);
+		gl.glEnableVertexAttribArray(aNormal);
 	}
 	
 	public void setModelMatrix(Matrix matrix) {
@@ -71,14 +97,38 @@ public class Renderer {
 	}
 	
 	public void draw(int numPoints) {
+		gl.glUniform3fv(uDiffuse, 1, diffuse);
+		gl.glUniform3fv(uAmbient, 1, ambient);
+		gl.glUniform3fv(uDirToLight, 1, light);
 		gl.glUniformMatrix4fv(uModel, 1, false, model);
-		gl.glUniformMatrix4fv(uViewProjection, 1, false, viewProj);
+		gl.glUniformMatrix4fv(uView, 1, false, view);
+		gl.glUniformMatrix4fv(uProj, 1, false, proj);
 		gl.glDrawArrays(GL2.GL_TRIANGLES, 0, numPoints);
 	}
 	
-	public void setViewProjection(Matrix viewProjection) {
-		FloatBuffer fb = viewProjection.asFloatBuffer();
+	public void setDiffuse(double diffusiveness) {
+		Vector v = new Vector(diffusiveness, diffusiveness, diffusiveness);
+		diffuse = v.asFloatBuffer();
+	}
+	
+	public void setAmbient(double ambience) {
+		Vector v = new Vector(ambience, ambience, ambience);
+		ambient = v.asFloatBuffer();
+	}
+	
+	public void setLightDirection(Vector lightDirection) {
+		light = lightDirection.asFloatBuffer();
+	}
+	
+	public void setView(Matrix viewMatrix) {
+		FloatBuffer fb = viewMatrix.asFloatBuffer();
 		fb.position(0);
-		viewProj = fb;
+		view = fb;
+	}
+	
+	public void setProjection(Matrix projMatrix) {
+		FloatBuffer fb = projMatrix.asFloatBuffer();
+		fb.position(0);
+		proj = fb;
 	}
 }
