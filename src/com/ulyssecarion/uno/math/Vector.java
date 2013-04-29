@@ -1,5 +1,9 @@
 package com.ulyssecarion.uno.math;
 
+import java.nio.FloatBuffer;
+
+import com.jogamp.common.nio.Buffers;
+
 public class Vector {
 	private float x;
 	private float y;
@@ -34,12 +38,20 @@ public class Vector {
 		return f;
 	}
 	
+	public FloatBuffer asFloatBuffer() {
+		return Buffers.newDirectFloatBuffer(asArray());
+	}
+	
 	public Vector add(Vector other) {
 		return new Vector(x + other.x, y + other.y, z + other.z);
 	}
 	
 	public Vector sub(Vector other) {
 		return new Vector(x - other.x, y - other.y, z - other.z);
+	}
+	
+	public Vector negate() {
+		return new Vector(-x, -y, -z);
 	}
 	
 	public Vector normalize() {
